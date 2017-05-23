@@ -1,0 +1,1 @@
+1. 注意Tensor的元素数目用的是arma::uword类型，当元素数目有可能超过4个字节极限时，应该在安装armadillo时将arma::uword设置为8个字节
