@@ -157,7 +157,7 @@ void TNSCat::test_tensor_product(){
 	t2.permute(per);
 	//t2.print("Tensor t2");
 
-	//double time1 = TNS_TIME;
+	double time1 = TNS_TIME;
 	Tensor t3;
 	arma::uword final_order[] = { 2, 7, 10, 3, 4, 5, 9, 8 };
 	arma::uword order1[] = { 1, 2, 3, 4, 5, 6 };
@@ -165,10 +165,10 @@ void TNSCat::test_tensor_product(){
 	arma::uword order2[] = { 7, 8, 1, 9, 6, 10 };
 	arma::uword forder2[] = { 1, 6, 7, 9, 8, 10 };
 	t3.tensor_product(final_order, 2, t1, order1, forder1, t2, order2, forder2);	
-	//double time2 = TNS_TIME;
-	//std::cout << "Tensor product time = " << std::setprecision(3) << time2 - time1 << "s" << std::endl;
+	double time2 = TNS_TIME;
+	std::cout << "Tensor product time = " << std::setprecision(3) << time2 - time1 << "s" << std::endl;
 	//t3.print("Tensor t3");
-	system("pause");
+	//system("pause");
 
 	t1.tensor_permute(order1, forder1);
 	t2.tensor_permute(order2, forder2);

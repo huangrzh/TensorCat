@@ -146,26 +146,60 @@ void TNSCat::Tensor::permute(const arma::uword* permutation){
 	}
 
 	if (ifpermute){
-		arma::uvec oldsize = size_;
-		for (arma::uword ind = 0; ind < ndims; ind++){
-			int iorder = permutation[ind];
-			size_(ind) = oldsize(iorder);
-		}
-
+		arma::uvec permute(permutation, ndims);
+		arma::uvec oldsize = size_;		
 		arma::mat oldele = ele_;
-		arma::uvec w0(ndims),
-			w1(ndims);
-		w0(0) = 0;
-		w1(0) = 0;
+		arma::uvec old_accu = accu_size_(permute);
 
-		arma::uvec old_accu = accu_size_;
-		accu_size_ = size_;
-		accu_size_(0) = 1;
-		accu_size_(1) = size_(0);
-		for (arma::uword ind = 2; ind < ndims; ind++){
-			accu_size_(ind) = accu_size_(ind - 1)*size_(ind - 1);
-		}
+		size_ = oldsize(permute);
+		set_accusize();
 
+		arma::uvec iwork(ndims);
+		iwork.zeros();
+		arma::uword idest = 0,
+			plast = 0,
+			k = 0,
+			exitg1 = 0,
+			dim0 = size_(0);
+
+		do {
+			plast = 0;
+			
+			for (k = 0; k < ndims-1; k++) {
+				plast += iwork[k + 1] * old_accu[k + 1];
+				//std::cout << iwork[k + 1] << ", " << old_accu[k + 1] << std::endl;
+			}
+
+			
+			for (k = 1; k <= dim0; k++) {
+				//std::cout << idest << ", " << plast << std::endl;
+				//system("pause");
+				ele_(idest) = oldele(plast);
+				idest++;
+				plast += old_accu[0];
+			}
+
+			k = 1;
+			do {
+				exitg1 = 0;
+				iwork[k]++;
+				if (iwork[k] < size_[k]) {
+					exitg1 = 2;
+				}
+				else if (k + 1 == ndims) {
+					exitg1 = 1;
+				}
+				else {
+					iwork[k] = 0;
+					k++;
+				}
+			} while (exitg1 == 0);
+		} while (!(exitg1 == 1));
+	}
+
+
+
+	/*
 		arma::uvec iorder(ndims);
 		arma::uword res_iele = 0;
 		for (arma::uword iele = 0; iele < num_ele; iele++){
@@ -176,13 +210,13 @@ void TNSCat::Tensor::permute(const arma::uword* permutation){
 			}
 			iorder(0) = res_iele / old_accu(0);
 
-			arma::uword new_iele = 0;
-			for (arma::uword idim = 0; idim < ndims; idim++){
-				new_iele += iorder(permutation[idim])*accu_size_(idim);
-			}
+			arma::uword new_iele = arma::dot(iorder(permute), accu_size_);
+			//for (arma::uword idim = 0; idim < ndims; idim++){
+			//	new_iele += iorder(permutation[idim])*accu_size_(idim);
+			//}
 			ele_(new_iele) = oldele(iele);
 		}
-	}
+		*/
 }
 
 
@@ -195,12 +229,12 @@ void TNSCat::Tensor::tensor_permute(const arma::uword* oldorderi, const arma::uw
 	arma::uvec IX2 = arma::sort_index(neworder);
 	arma::uvec per(ndims);
 	per(IX2) = IX1;
-	double time2 = TNS_TIME;
-	std::cout << "Tensor permute time1 = " << std::setprecision(3) << time2 - time1 << "s" << std::endl;
+	//double time2 = TNS_TIME;
+	//std::cout << "Tensor permute time1 = " << std::setprecision(3) << time2 - time1 << "s" << std::endl;
 
 	permute(per.memptr());
-	double time3 = TNS_TIME;
-	std::cout << "Tensor permute time2 = " << std::setprecision(3) << time3 - time2 << "s" << std::endl;
+	//double time3 = TNS_TIME;
+	//std::cout << "Tensor permute time2 = " << std::setprecision(3) << time3 - time2 << "s" << std::endl;
 }
 
 
@@ -208,10 +242,10 @@ void TNSCat::Tensor::tensor_permute(const arma::uword* oldorderi, const arma::uw
 
 
 TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword* final_order, const arma::uword& num_con_inds, const Tensor& T1_, const arma::uword* order1, const arma::uword* forder1, const Tensor& T2_, const arma::uword* order2, const arma::uword* forder2){
-	double time1 = TNS_TIME;
+	//double time1 = TNS_TIME;
 	tensor_product(num_con_inds, T1_, order1, forder1, T2_, order2, forder2);
-	double time2 = TNS_TIME;
-	std::cout << "Tensor product time1 = " << std::setprecision(3) << time2 - time1 << "s" << std::endl;
+	//double time2 = TNS_TIME;
+	//std::cout << "Tensor product time1 = " << std::setprecision(3) << time2 - time1 << "s" << std::endl;
 
 	arma::uvec oldinds(ndims);
 	arma::uword ndims1 = T1_.ndims,
@@ -227,11 +261,11 @@ TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword* final_order, c
 		ileg++;
 	}
 
-	double time3 = TNS_TIME;
-	std::cout << "Tensor product time2 = " << std::setprecision(3) << time3 - time2 << std::endl;
+	//double time3 = TNS_TIME;
+	//std::cout << "Tensor product time2 = " << std::setprecision(3) << time3 - time2 << std::endl;
 	tensor_permute(oldinds.memptr(), final_order);
-	double time4 = TNS_TIME;
-	std::cout << "Tensor product time3 = " << std::setprecision(3) << time4 - time3 << std::endl;
+	//double time4 = TNS_TIME;
+	//std::cout << "Tensor product time3 = " << std::setprecision(3) << time4 - time3 << std::endl;
 
 	return *this;
 }
