@@ -33,6 +33,8 @@ namespace TNSCat{
 	//-------------------------------------------
 	// Tensor operations
 	//------------------------------------------
+		void reset(const arma::mat& datai, const arma::uvec& sizei);
+
 		Tensor& operator=(const Tensor&);
 		void reshape(const arma::uvec& new_size);
 		void tensor_reshape(const std::vector<arma::uvec>& new_inds, const arma::uword* full_oldind, const arma::uword* full_newind);

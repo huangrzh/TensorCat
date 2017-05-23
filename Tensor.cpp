@@ -71,6 +71,20 @@ void TNSCat::Tensor::randomize(const arma::uvec& sizei){
 
 
 
+
+void TNSCat::Tensor::reset(const arma::mat& datai, const arma::uvec& sizei){
+	const_cast<arma::uword&>(num_ele) = datai.n_elem;
+	const_cast<arma::uword&>(ndims) = sizei.n_elem;
+	ele_ = datai;
+	size_ = sizei;
+	set_accusize();
+}
+
+
+
+
+
+
 TNSCat::Tensor& TNSCat::Tensor::operator=(const Tensor& T){
 	const_cast<arma::uword&>(num_ele) = T.num_ele;
 	const_cast<arma::uword&>(ndims) = T.ndims;
