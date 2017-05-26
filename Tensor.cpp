@@ -68,7 +68,10 @@ void TNSCat::Tensor::randomize(const arma::uvec& sizei){
 
 
 
-
+void TNSCat::Tensor::randomize(const std::vector<arma::uword>& sizei_){
+	arma::uvec sizei(sizei_.data(), sizei_.size());
+	randomize(sizei);
+}
 
 
 
@@ -80,6 +83,25 @@ void TNSCat::Tensor::reset(const arma::mat& datai, const arma::uvec& sizei){
 	set_accusize();
 }
 
+
+void TNSCat::Tensor::reset(const arma::mat& datai, const std::vector<arma::uword>& sizei){
+	const_cast<arma::uword&>(num_ele) = datai.n_elem;
+	const_cast<arma::uword&>(ndims) = sizei.size();
+	ele_ = datai;
+	size_ = sizei;
+	set_accusize();
+}
+
+
+void TNSCat::Tensor::reset(const arma::mat& datai){
+	const_cast<arma::uword&>(num_ele) = datai.n_elem;
+	const_cast<arma::uword&>(ndims) = 2;
+	ele_ = datai;
+	size_.set_size(2);
+	size_(0) = datai.n_rows;
+	size_(1) = datai.n_cols;
+	set_accusize();
+}
 
 
 
@@ -145,6 +167,15 @@ void TNSCat::Tensor::tensor_reshape(const std::vector<arma::uvec>& new_inds, con
 		reshape(newsize);
 	}
 }
+
+
+
+
+
+void TNSCat::Tensor::permute(const std::vector<arma::uword>& permutation){
+	permute(permutation.data());
+}
+
 
 
 
@@ -253,9 +284,27 @@ void TNSCat::Tensor::tensor_permute(const arma::uword* oldorderi, const arma::uw
 
 
 
+TNSCat::Tensor& TNSCat::Tensor::tensor_product(const std::vector<arma::uword>& final_order, const arma::uword& num_con_inds, const Tensor& T1_,
+	const std::vector<arma::uword>& order1, const std::vector<arma::uword>& forder1, const Tensor& T2_,
+	const std::vector<arma::uword>& order2, const std::vector<arma::uword>& forder2){
+
+	tensor_product(final_order.data(), num_con_inds, T1_, order1.data(), forder1.data(), T2_, order2.data(), forder2.data());
+	return *this;
+}
 
 
-TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword* final_order, const arma::uword& num_con_inds, const Tensor& T1_, const arma::uword* order1, const arma::uword* forder1, const Tensor& T2_, const arma::uword* order2, const arma::uword* forder2){
+
+TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword& num_con_inds, const Tensor& T1_,
+	const std::vector<arma::uword>& order1, const std::vector<arma::uword>& forder1, const Tensor& T2_,
+	const std::vector<arma::uword>& order2, const std::vector<arma::uword>& forder2){
+
+	tensor_product(num_con_inds, T1_, order1.data(), forder1.data(), T2_, order2.data(), forder2.data());
+	return *this;
+}
+
+
+TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword* final_order, const arma::uword& num_con_inds, const Tensor& T1_, 
+	const arma::uword* order1, const arma::uword* forder1, const Tensor& T2_, const arma::uword* order2, const arma::uword* forder2){
 	//double time1 = TNS_TIME;
 	tensor_product(num_con_inds, T1_, order1, forder1, T2_, order2, forder2);
 	//double time2 = TNS_TIME;
@@ -325,6 +374,14 @@ TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword& num_con_inds, 
 
 
 
+double TNSCat::dot(const Tensor& T1, const Tensor& T2){
+	return arma::dot
+}
+
+
+
+
+
 
 double& TNSCat::Tensor::at(const arma::uvec& inds){
 	arma::uword iele = 0;
@@ -363,10 +420,20 @@ double& TNSCat::Tensor::at(arma::uword iele){
 }
 
 
+
+const arma::mat& TNSCat::Tensor::c_data(){
+	return ele_;
+}
+
 arma::mat& TNSCat::Tensor::data(){
 	return ele_;
 }
 
+
+
+arma::uvec& TNSCat::Tensor::size(){
+	return size_;
+}
 
 
 
