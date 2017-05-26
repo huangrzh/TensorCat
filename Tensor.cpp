@@ -46,6 +46,7 @@ void TNSCat::Tensor::print(){
 
 
 
+
 void TNSCat::Tensor::print(std::string s){
 	std::cout << s << std::endl;
 	print();
@@ -375,7 +376,7 @@ TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword& num_con_inds, 
 
 
 double TNSCat::dot(const Tensor& T1, const Tensor& T2){
-	return arma::dot
+	return arma::dot(T1.ele_, T2.ele_);
 }
 
 
@@ -426,6 +427,12 @@ const arma::mat& TNSCat::Tensor::c_data(){
 }
 
 arma::mat& TNSCat::Tensor::data(){
+	return ele_;
+}
+
+
+
+arma::mat TNSCat::Tensor::copy_data(){
 	return ele_;
 }
 

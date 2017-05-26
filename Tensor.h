@@ -33,9 +33,6 @@ namespace TNSCat{
 
 
 
-
-
-
 	//-------------------------------------------
 	// Tensor operations
 	//------------------------------------------
@@ -88,6 +85,7 @@ namespace TNSCat{
 		double& at(arma::uword iele);
 		const arma::mat& c_data();
 		arma::mat& data();
+		arma::mat copy_data();
 		arma::uvec& size();
 		
 		
