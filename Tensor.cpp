@@ -3,14 +3,14 @@
 
 
 TNSCat::Tensor::Tensor() 
-	: num_ele(0),
+	: n_elem(0),
 	  ndims(0){
 }
 
 
 
 
-TNSCat::Tensor::Tensor(const Tensor& T)	: num_ele(T.num_ele), ndims(T.ndims){
+TNSCat::Tensor::Tensor(const Tensor& T)	: n_elem(T.n_elem), ndims(T.ndims){
 	ele_ = T.ele_;
 	size_ = T.size_;
 	accu_size_ = T.accu_size_;
@@ -18,9 +18,9 @@ TNSCat::Tensor::Tensor(const Tensor& T)	: num_ele(T.num_ele), ndims(T.ndims){
 
 
 
-TNSCat::Tensor::Tensor(arma::uvec sizei, arma::uword rank) : num_ele(arma::prod(sizei)), ndims(rank){
+TNSCat::Tensor::Tensor(arma::uvec sizei, arma::uword rank) : n_elem(arma::prod(sizei)), ndims(rank){
 	size_ = sizei;
-	ele_.set_size(num_ele);
+	ele_.set_size(n_elem);
 	set_accusize();
 }
 
@@ -37,7 +37,7 @@ TNSCat::Tensor::~Tensor(){}
 void TNSCat::Tensor::print(){
 	std::cout << std::endl << "------------------------" << std::endl;
 	std::cout << "Rank : " << ndims << std::endl;
-	std::cout << "NumOfEle : " << num_ele << std::endl;
+	std::cout << "NumOfEle : " << n_elem << std::endl;
 	std::cout << "Size : " << std::endl << size_ << std::endl;
 	std::cout << "AccuSize : " << std::endl << accu_size_ << std::endl;
 	std::cout << "Data Size : " << ele_.n_rows << ", " << ele_.n_cols << std::endl;
@@ -54,10 +54,10 @@ void TNSCat::Tensor::print(std::string s){
 
 
 
-void TNSCat::Tensor::randomize(const arma::uvec& sizei){
-	const_cast<arma::uword&>(num_ele) = arma::prod(sizei);
+void TNSCat::Tensor::randu(const arma::uvec& sizei){
+	const_cast<arma::uword&>(n_elem) = arma::prod(sizei);
 	const_cast<arma::uword&>(ndims) = sizei.n_elem;
-	ele_ = arma::randu(num_ele);
+	ele_ = arma::randu(n_elem);
 	size_ = sizei;
 	accu_size_ = size_;
 	accu_size_(0) = 1;
@@ -69,15 +69,130 @@ void TNSCat::Tensor::randomize(const arma::uvec& sizei){
 
 
 
-void TNSCat::Tensor::randomize(const std::vector<arma::uword>& sizei_){
+void TNSCat::Tensor::randu(const std::vector<arma::uword>& sizei_){
 	arma::uvec sizei(sizei_.data(), sizei_.size());
-	randomize(sizei);
+	randu(sizei);
+}
+
+
+void TNSCat::Tensor::randn(const std::vector<arma::uword>& sizei_){
+	arma::uvec sizei(sizei_.data(), sizei_.size());
+	const_cast<arma::uword&>(n_elem) = arma::prod(sizei);
+	const_cast<arma::uword&>(ndims) = sizei.size();
+	ele_ = arma::randn(n_elem);
+	size_ = sizei;
+	accu_size_ = size_;
+	accu_size_(0) = 1;
+	accu_size_(1) = size_(0);
+	for (arma::uword ind = 2; ind < ndims; ind++){
+		accu_size_(ind) = accu_size_(ind - 1)*size_(ind - 1);
+	}
 }
 
 
 
+
+void TNSCat::Tensor::zeros(){
+	ele_.zeros();
+}
+
+
+
+
+
+void TNSCat::Tensor::edge_i_mpo(){
+	arma::uword d = 2,
+		e = 0;
+	reset({ 5, d, d });
+	zeros();
+
+	this->at({ e, 0, 0 }) = 1.;
+	this->at({ e, 1, 1 }) = 1.;
+
+	
+	this->at({ 1, 0, 1 }) = 1.;
+
+	this->at({ 2, 1, 0 }) = 0.5;
+
+	this->at({ 3, 0, 0 }) = 0.5;
+	this->at({ 3, 1, 1 }) = -0.5;
+}
+
+
+
+
+
+void TNSCat::Tensor::edge_f_mpo(){
+	arma::uword d = 2,
+		e = 0;
+	reset({ 5, d, d });
+	zeros();
+
+	
+	this->at({ 4, 0, 0 }) = 1.;
+	this->at({ 4, 1, 1 }) = 1.;
+
+	this->at({ 2, 0, 1 }) = 1.;
+
+	this->at({ 1, 1, 0 }) = 0.5;
+
+	this->at({ 3, 0, 0 }) = 0.5;
+	this->at({ 3, 1, 1 }) = -0.5;
+}
+
+
+
+
+
+
+
+void TNSCat::Tensor::mpo(){
+	arma::uword d = 2, 
+		e = 0;
+	reset({ 5, 5, d, d });
+	zeros();
+
+	this->at({ e, 0, 0, 0 }) = 1.;
+	this->at({ e, 0, 1, 1 }) = 1.;
+
+	this->at({ 4, 4, 0, 0 }) = 1.;
+	this->at({ 4, 4, 1, 1 }) = 1.;
+
+	this->at({ e, 1, 0, 1 }) = 1.;
+	this->at({ 2, 4, 0, 1 }) = 1.;
+
+	this->at({ e, 2, 1, 0 }) = 0.5;
+	this->at({ 1, 4, 1, 0 }) = 0.5;
+
+	this->at({ e, 3, 0, 0 }) = 0.5;
+	this->at({ 3, 4, 0, 0 }) = 0.5;
+	this->at({ e, 3, 1, 1 }) = -0.5;
+	this->at({ 3, 4, 1, 1 }) = -0.5;
+}
+
+
+
+
+
+void TNSCat::Tensor::reset(const std::vector<arma::uword>& sizei){
+	arma::uword n_e = 1;
+	for (const auto& x : sizei){
+		n_e *= x;
+	}
+	const_cast<arma::uword&>(n_elem) = n_e;
+	const_cast<arma::uword&>(ndims) = sizei.size();
+	ele_.set_size(n_elem, 1);
+	size_ = sizei;
+	set_accusize();
+}
+
+
+
+
+
+
 void TNSCat::Tensor::reset(const arma::mat& datai, const arma::uvec& sizei){
-	const_cast<arma::uword&>(num_ele) = datai.n_elem;
+	const_cast<arma::uword&>(n_elem) = datai.n_elem;
 	const_cast<arma::uword&>(ndims) = sizei.n_elem;
 	ele_ = datai;
 	size_ = sizei;
@@ -86,7 +201,7 @@ void TNSCat::Tensor::reset(const arma::mat& datai, const arma::uvec& sizei){
 
 
 void TNSCat::Tensor::reset(const arma::mat& datai, const std::vector<arma::uword>& sizei){
-	const_cast<arma::uword&>(num_ele) = datai.n_elem;
+	const_cast<arma::uword&>(n_elem) = datai.n_elem;
 	const_cast<arma::uword&>(ndims) = sizei.size();
 	ele_ = datai;
 	size_ = sizei;
@@ -95,7 +210,7 @@ void TNSCat::Tensor::reset(const arma::mat& datai, const std::vector<arma::uword
 
 
 void TNSCat::Tensor::reset(const arma::mat& datai){
-	const_cast<arma::uword&>(num_ele) = datai.n_elem;
+	const_cast<arma::uword&>(n_elem) = datai.n_elem;
 	const_cast<arma::uword&>(ndims) = 2;
 	ele_ = datai;
 	size_.set_size(2);
@@ -108,8 +223,37 @@ void TNSCat::Tensor::reset(const arma::mat& datai){
 
 
 
+
+void TNSCat::Tensor::sum_ind(arma::uword i_ind){
+	arma::uvec old_inds = arma::linspace<arma::uvec>(1, ndims, ndims);
+	arma::uvec new_inds = old_inds;
+	if (i_ind != 0){
+		new_inds[0] = i_ind;
+		arma::uword iele_o = 0;
+		for (arma::uword iele = 1; iele < ndims; iele++){
+			if (i_ind != iele_o){
+				new_inds[iele] = old_inds[iele_o];
+			}
+			iele_o++;
+		}
+		tensor_permute(old_inds.memptr(), new_inds.memptr()); 
+	}
+
+
+	ele_.reshape(size_(0), n_elem / size_(0));
+	ele_ = arma::sum(ele_, 0);
+	const_cast<arma::uword&>(n_elem) = n_elem / size_(0);
+	const_cast<arma::uword&>(ndims) = ndims - 1;
+	size_ = size_(arma::span(1, ndims - 1));
+	set_accusize();
+}
+
+
+
+
+
 TNSCat::Tensor& TNSCat::Tensor::operator=(const Tensor& T){
-	const_cast<arma::uword&>(num_ele) = T.num_ele;
+	const_cast<arma::uword&>(n_elem) = T.n_elem;
 	const_cast<arma::uword&>(ndims) = T.ndims;
 	ele_ = T.ele_;
 	size_ = T.size_;
@@ -126,7 +270,7 @@ TNSCat::Tensor& TNSCat::Tensor::operator=(const Tensor& T){
 void TNSCat::Tensor::reshape(const arma::uvec& new_size){
 #ifdef DEBUG_CODE
 	arma::uword numin = arma::prod(new_size);
-	if (numin != num_ele){
+	if (numin != n_elem){
 		std::cout << "Error in Tensor::reshape: size doesn't match!" << std::endl;
 		return;
 	}
@@ -143,6 +287,12 @@ void TNSCat::Tensor::reshape(const arma::uvec& new_size){
 }
 
 
+
+
+void TNSCat::Tensor::reshape(const std::vector<arma::uword>& new_size){
+	arma::uvec size0(new_size);
+	reshape(size0);
+}
 
 void TNSCat::Tensor::tensor_reshape(const std::vector<arma::uvec>& new_inds, const arma::uword* full_oldind, const arma::uword* full_newind){
 #ifdef DEBUG_CODE
@@ -248,7 +398,7 @@ void TNSCat::Tensor::permute(const arma::uword* permutation){
 	/*
 		arma::uvec iorder(ndims);
 		arma::uword res_iele = 0;
-		for (arma::uword iele = 0; iele < num_ele; iele++){
+		for (arma::uword iele = 0; iele < n_elem; iele++){
 			res_iele = iele;
 			for (arma::uword idim = ndims - 1; idim > 0; idim--){
 				iorder(idim) = res_iele / old_accu(idim);
@@ -345,11 +495,11 @@ TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword& num_con_inds, 
 	T1.tensor_permute(order1, forder1);
 	T2.tensor_permute(order2, forder2);
 	arma::uword dim_com = arma::prod(T1.size_.subvec(T1.ndims - num_con_inds, T1.ndims - 1));
-	T1.ele_.reshape(T1.num_ele / dim_com, dim_com);
-	T2.ele_.reshape(dim_com, T2.num_ele / dim_com);
+	T1.ele_.reshape(T1.n_elem / dim_com, dim_com);
+	T2.ele_.reshape(dim_com, T2.n_elem / dim_com);
 
 	ele_ = T1.ele_ * T2.ele_;
-	const_cast<arma::uword&>(num_ele) = ele_.n_elem;
+	const_cast<arma::uword&>(n_elem) = ele_.n_elem;
 	const_cast<arma::uword&>(ndims) = T1_.ndims + T2_.ndims - 2 * num_con_inds;
 
 	size_.set_size(ndims);
@@ -373,12 +523,57 @@ TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword& num_con_inds, 
 
 
 
+TNSCat::Tensor& TNSCat::Tensor::double_tensor(const Tensor& T1, const Tensor& T2){
+	arma::uword r = T1.ndims;
+	arma::uvec ind1 = arma::linspace<arma::uvec>(1, r, r);
+	arma::uvec ind2 = ind1 + r;
+	ind2(r-1) = ind1(r-1);
+	arma::uvec find1 = ind1;
+	arma::uvec find2 = arma::linspace<arma::uvec>(r, 2 * r - 1, r);
+	find2(0) = r;
+
+
+
+	arma::uvec f_ind;
+	arma::uword n_find = 2*r-2;
+	f_ind.zeros(n_find, 1);
+	arma::uword ind_ele = 1;
+	for (arma::uword iele = 0; iele < n_find; iele = iele + 2){
+		f_ind(iele) = ind_ele;
+		f_ind(iele + 1) = ind_ele + r;
+		ind_ele++;
+	}
+	
+	
+	tensor_product(f_ind.memptr(), 1, T1, ind1.memptr(), find1.memptr(), T2, ind2.memptr(), find2.memptr());
+	
+	arma::uvec fsize = T1.size_ % T2.size_; 
+	fsize = fsize(arma::span(0, r - 2));
+	reshape(fsize);
+	return *this;
+}
+
+
 
 
 double TNSCat::dot(const Tensor& T1, const Tensor& T2){
 	return arma::dot(T1.ele_, T2.ele_);
 }
 
+
+
+
+
+double& TNSCat::Tensor::operator()(const std::vector<arma::uword>& inds){
+	return at(inds);
+}
+
+
+
+
+double& TNSCat::Tensor::operator()(arma::uword iele){
+	return at(iele);
+}
 
 
 
@@ -422,7 +617,50 @@ double& TNSCat::Tensor::at(arma::uword iele){
 
 
 
-const arma::mat& TNSCat::Tensor::c_data(){
+
+
+const double& TNSCat::Tensor::c_at(const arma::uvec& inds)const{
+	arma::uword iele = 0;
+	for (arma::uword idim = 0; idim < ndims; idim++){
+		iele += accu_size_(idim) * inds(idim);
+	}
+	return ele_.at(iele);
+}
+
+
+
+
+
+const double& TNSCat::Tensor::c_at(const std::vector<arma::uword>& inds)const{
+	arma::uword iele = 0;
+	for (arma::uword idim = 0; idim < ndims; idim++){
+		iele += accu_size_(idim) * inds[idim];
+	}
+	return ele_.at(iele);
+}
+
+
+
+const double& TNSCat::Tensor::c_at(const arma::uword *inds)const{
+	arma::uword iele = 0;
+	for (arma::uword idim = 0; idim < ndims; idim++){
+		iele += accu_size_(idim) * inds[idim];
+	}
+	return ele_.at(iele);
+}
+
+
+
+const double& TNSCat::Tensor::c_at(arma::uword iele)const{
+	return ele_.at(iele);
+}
+
+
+
+
+
+
+const arma::mat& TNSCat::Tensor::c_data()const{
 	return ele_;
 }
 
@@ -432,18 +670,14 @@ arma::mat& TNSCat::Tensor::data(){
 
 
 
-arma::mat TNSCat::Tensor::copy_data(){
-	return ele_;
-}
-
-
-
-arma::uvec& TNSCat::Tensor::size(){
+const arma::uvec& TNSCat::Tensor::size()const{
 	return size_;
 }
 
 
-
+arma::uword TNSCat::Tensor::size(arma::uword i_ind){
+	return size_(i_ind);
+}
 
 
 

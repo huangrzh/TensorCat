@@ -19,9 +19,20 @@ namespace TNSCat{
 
 
 	// Random tensor
-		void randomize(const arma::uvec& sizei);
-		void randomize(const std::vector<arma::uword>& sizei);
+		void randu(const arma::uvec& sizei);
+		void randu(const std::vector<arma::uword>& sizei);
+		void randn(const std::vector<arma::uword>& sizei);
 
+
+	// zeros
+		void zeros();
+
+
+
+	// MPO--Heisenberg model
+		void edge_i_mpo();
+		void edge_f_mpo();
+		void mpo();
 
 
 
@@ -35,15 +46,19 @@ namespace TNSCat{
 
 	//-------------------------------------------
 	// Tensor operations
-	//------------------------------------------
+	//-------------------------------------------
+		void reset(const std::vector<arma::uword>& sizei);
 		void reset(const arma::mat& datai, const arma::uvec& sizei);
 		void reset(const arma::mat& datai, const std::vector<arma::uword>& sizei);
 		void reset(const arma::mat& datai);
 
 
+		void sum_ind(arma::uword i_ind);
+
 
 		Tensor& operator=(const Tensor&);
 		void reshape(const arma::uvec& new_size);
+		void reshape(const std::vector<arma::uword>& new_size);
 		void tensor_reshape(const std::vector<arma::uvec>& new_inds, const arma::uword* full_oldind, const arma::uword* full_newind);
 
 
@@ -72,21 +87,33 @@ namespace TNSCat{
 			const arma::uword* forder1, const Tensor& T2_, const arma::uword* order2, const arma::uword* forder2);
 
 	
+		Tensor& double_tensor(const Tensor& T1, const Tensor& T2);
 
 		friend double dot(const Tensor& T1, const Tensor& T2);
+		
 
 
 	//-----------------------------------------
 	// Tensor element access
 	//-----------------------------------------
+		double& operator()(const std::vector<arma::uword>& inds);
+		double& operator()(arma::uword iele);
+
 		double& at(const arma::uvec& inds);
 		double& at(const std::vector<arma::uword>& inds);
 		double& at(const arma::uword *inds);
 		double& at(arma::uword iele);
-		const arma::mat& c_data();
+
+		const double& c_at(const arma::uvec& inds)const;
+		const double& c_at(const std::vector<arma::uword>& inds)const;
+		const double& c_at(const arma::uword *inds)const;
+		const double& c_at(arma::uword iele)const;
+
+		const arma::mat& c_data()const;
 		arma::mat& data();
-		arma::mat copy_data();
-		arma::uvec& size();
+
+		const arma::uvec& size()const;
+		arma::uword size(arma::uword i_ind);
 		
 		
 
@@ -95,7 +122,7 @@ namespace TNSCat{
 	// Attributes:
 	//-----------------------------------------------
 		const arma::uword ndims;
-		const arma::uword num_ele;
+		const arma::uword n_elem;
 
 		arma::uvec accu_size_;
 	private:

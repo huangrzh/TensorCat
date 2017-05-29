@@ -10,7 +10,7 @@ void TNSCat::test_rand_tensor(){
 	arma::uvec size1(4);
 	size1 << 2 << 3 << 4 << 5;
 	double time0 = TNS_TIME;
-	t1.randomize(size1);
+	t1.randu(size1);
 	double time1 = TNS_TIME;
 	std::cout << "Time " << std::setprecision(5) << time1 - time0 << "s" << std::endl;
 
@@ -26,14 +26,32 @@ void TNSCat::test_rand_tensor(){
 
 
 
+
+void TNSCat::test_double_tensor(){
+	std::cout << __FUNCTION__ << std::endl;
+	Tensor t1;
+	arma::uvec size1(4);
+	size1 << 2 << 3 << 4 << 5;
+	t1.randu(size1);
+
+	Tensor t2 = t1;
+	Tensor t3;
+	t3.double_tensor(t1, t2);
+	t3.print();
+}
+
+
+
+
 void TNSCat::test_reshape(){
 	std::cout << __FUNCTION__ << std::endl;
 	
 	Tensor t1;
+	t1.at({ 1, 2, 3, 4 });
 	arma::uvec size1(6);
 	size1 << 2 << 3 << 4 << 5 << 8 << 9;
 	
-	t1.randomize(size1);
+	t1.randu(size1);
 	t1.print();
 
 	arma::uvec newsize(2);
@@ -80,7 +98,7 @@ void TNSCat::test_premute(){
 	arma::uvec size1(6);
 	size1 << 2 << 3 << 4 << 5 << 8 << 9;
 
-	t1.randomize(size1);
+	t1.randu(size1);
 	//t1.print("Tensor t1");
 
 
@@ -148,7 +166,7 @@ void TNSCat::test_tensor_product(){
 	arma::uvec size1(6);
 	size1 << 2 << 3 << 4 << 5 << 8 << 9;
 
-	t1.randomize(size1);
+	t1.randu(size1);
 	//t1.print("Tensor t1");
 
 
@@ -174,8 +192,8 @@ void TNSCat::test_tensor_product(){
 	t2.tensor_permute(order2, forder2);
 	arma::mat mat1 = t1.data();
 	arma::mat mat2 = t2.data();
-	mat1.reshape(t1.num_ele / 18, 18);
-	mat2.reshape(18, t2.num_ele / 18);
+	mat1.reshape(t1.n_elem / 18, 18);
+	mat2.reshape(18, t2.n_elem / 18);
 	arma::mat mat3 = mat1*mat2;
 
 
