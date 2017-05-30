@@ -39,8 +39,8 @@ namespace TNSCat{
 	//------------------------------------------
 	//   IO
 	//-----------------------------------------
-		void print(std::string);
-		void print();
+		void print(std::string)const;
+		void print()const;
 
 
 
@@ -113,7 +113,9 @@ namespace TNSCat{
 		arma::mat& data();
 
 		const arma::uvec& size()const;
-		arma::uword size(arma::uword i_ind);
+		arma::uword size(arma::uword i_ind)const;
+
+		double max_abs()const;
 		
 		
 

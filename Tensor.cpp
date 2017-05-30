@@ -34,7 +34,7 @@ TNSCat::Tensor::~Tensor(){}
 
 
 
-void TNSCat::Tensor::print(){
+void TNSCat::Tensor::print()const{
 	std::cout << std::endl << "------------------------" << std::endl;
 	std::cout << "Rank : " << ndims << std::endl;
 	std::cout << "NumOfEle : " << n_elem << std::endl;
@@ -47,7 +47,7 @@ void TNSCat::Tensor::print(){
 
 
 
-void TNSCat::Tensor::print(std::string s){
+void TNSCat::Tensor::print(std::string s)const{
 	std::cout << s << std::endl;
 	print();
 }
@@ -242,9 +242,10 @@ void TNSCat::Tensor::sum_ind(arma::uword i_ind){
 
 	ele_.reshape(size_(0), n_elem / size_(0));
 	ele_ = arma::sum(ele_, 0);
+	ele_.reshape(n_elem, 1);
 	const_cast<arma::uword&>(n_elem) = n_elem / size_(0);
 	const_cast<arma::uword&>(ndims) = ndims - 1;
-	size_ = size_(arma::span(1, ndims - 1));
+	size_ = size_(arma::span(1, ndims));
 	set_accusize();
 }
 
@@ -675,9 +676,20 @@ const arma::uvec& TNSCat::Tensor::size()const{
 }
 
 
-arma::uword TNSCat::Tensor::size(arma::uword i_ind){
+arma::uword TNSCat::Tensor::size(arma::uword i_ind)const{
 	return size_(i_ind);
 }
+
+
+
+
+
+double TNSCat::Tensor::max_abs()const{
+	return (arma::abs(ele_)).max();
+}
+
+
+
 
 
 
