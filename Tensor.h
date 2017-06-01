@@ -33,7 +33,13 @@ namespace TNSCat{
 		void edge_i_mpo();
 		void edge_f_mpo();
 		void mpo();
+		void sp();
+		void sm();
+		void sz();
 
+
+
+	
 
 
 	//------------------------------------------
@@ -89,7 +95,20 @@ namespace TNSCat{
 	
 		Tensor& double_tensor(const Tensor& T1, const Tensor& T2);
 
+		Tensor& double_tensor(const Tensor& T1, const Tensor& o, const Tensor& T2);
+
+		Tensor& tri_tensor(const Tensor& T1, const Tensor& o, const std::vector<arma::uword>& oinds, const Tensor& T2);
+
+		Tensor& bi_par();
+
+
+
+
+	//-----------------------------------------
+	// Friend/Standalone functions
+	//-----------------------------------------
 		friend double dot(const Tensor& T1, const Tensor& T2);
+		friend double delta(const Tensor& T1, const Tensor& T2);
 		
 
 
@@ -123,8 +142,8 @@ namespace TNSCat{
 	//------------------------------------------------
 	// Attributes:
 	//-----------------------------------------------
-		const arma::uword ndims;
-		const arma::uword n_elem;
+		const arma::uword ndims = 0;
+		const arma::uword n_elem = 0;
 
 		arma::uvec accu_size_;
 	private:
@@ -138,7 +157,7 @@ namespace TNSCat{
 		
 	};
 
-
+	double dot(const Tensor& T1, const Tensor& T2);
 }
 
 

@@ -3,8 +3,7 @@
 
 
 TNSCat::Tensor::Tensor() 
-	: n_elem(0),
-	  ndims(0){
+{
 }
 
 
@@ -169,6 +168,39 @@ void TNSCat::Tensor::mpo(){
 	this->at({ e, 3, 1, 1 }) = -0.5;
 	this->at({ 3, 4, 1, 1 }) = -0.5;
 }
+
+
+
+
+
+void TNSCat::Tensor::sp(){
+	arma::mat matp;
+	matp.zeros(2, 2);
+	matp(0, 1) = 1.;
+	reset(matp);
+}
+
+
+
+
+void TNSCat::Tensor::sm(){
+	arma::mat matp;
+	matp.zeros(2, 2);
+	matp(1, 0) = 1.;
+	reset(matp);
+}
+
+
+
+
+void TNSCat::Tensor::sz(){
+	arma::mat matp;
+	matp.zeros(2, 2);
+	matp(0, 0) = 0.5;
+	matp(1, 1) = -0.5;
+	reset(matp);
+}
+
 
 
 
@@ -440,6 +472,13 @@ TNSCat::Tensor& TNSCat::Tensor::tensor_product(const std::vector<arma::uword>& f
 	const std::vector<arma::uword>& order1, const std::vector<arma::uword>& forder1, const Tensor& T2_,
 	const std::vector<arma::uword>& order2, const std::vector<arma::uword>& forder2){
 
+#ifdef DEBUG_CODE
+	if (T1_.ndims != order1.size() || T2_.ndims != order2.size()){
+		std::cout << __FUNCTION__ << std::endl;
+		std::cout << "Rank doesn't match!" << std::endl;
+		exit(1);
+	}
+#endif
 	tensor_product(final_order.data(), num_con_inds, T1_, order1.data(), forder1.data(), T2_, order2.data(), forder2.data());
 	return *this;
 }
@@ -450,6 +489,13 @@ TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword& num_con_inds, 
 	const std::vector<arma::uword>& order1, const std::vector<arma::uword>& forder1, const Tensor& T2_,
 	const std::vector<arma::uword>& order2, const std::vector<arma::uword>& forder2){
 
+#ifdef DEBUG_CODE
+	if (T1_.ndims != order1.size() || T2_.ndims != order2.size()){
+		std::cout << __FUNCTION__ << std::endl;
+		std::cout << "Rank doesn't match!" << std::endl;
+		exit(1);
+	}
+#endif
 	tensor_product(num_con_inds, T1_, order1.data(), forder1.data(), T2_, order2.data(), forder2.data());
 	return *this;
 }
@@ -495,7 +541,10 @@ TNSCat::Tensor& TNSCat::Tensor::tensor_product(const arma::uword& num_con_inds, 
 		T2(T2_);
 	T1.tensor_permute(order1, forder1);
 	T2.tensor_permute(order2, forder2);
-	arma::uword dim_com = arma::prod(T1.size_.subvec(T1.ndims - num_con_inds, T1.ndims - 1));
+	arma::uword dim_com = 1;
+	if (num_con_inds > 0){
+		dim_com = arma::prod(T1.size_.subvec(T1.ndims - num_con_inds, T1.ndims - 1));
+	}
 	T1.ele_.reshape(T1.n_elem / dim_com, dim_com);
 	T2.ele_.reshape(dim_com, T2.n_elem / dim_com);
 
@@ -557,10 +606,95 @@ TNSCat::Tensor& TNSCat::Tensor::double_tensor(const Tensor& T1, const Tensor& T2
 
 
 
+TNSCat::Tensor& TNSCat::Tensor::double_tensor(const Tensor& T1, const Tensor& o, const Tensor& T2){
+	Tensor o12 = o;
+	o12.permute({ 1, 0 });
+	Tensor t22;
+	arma::uvec order2 = arma::linspace<arma::uvec>(1, T2.ndims, T2.ndims);
+	arma::uvec forder2 = order2;
+	arma::uword order1[2] = { T2.ndims, T2.ndims + 1 };
+	arma::uword forder1[2] = { T2.ndims, T2.ndims + 1 };
+	t22.tensor_product(1, T2, order2.memptr(), forder2.memptr(), o12, order1, forder1);
+	double_tensor(T1, t22);
+}
+
+
+
+
+
+TNSCat::Tensor& TNSCat::Tensor::tri_tensor(const Tensor& T1, const Tensor& o, const std::vector<arma::uword>& oinds, const Tensor& T2){
+	arma::uword r2 = T2.ndims,
+		ro = o.ndims;
+	arma::uvec order2 = arma::linspace<arma::uvec>(1, r2, r2);
+	arma::uvec order1(oinds);
+	order1 += r2;
+	order1(ro - 1) = order2(r2 - 1);
+
+	arma::uvec forder1 = order1;
+	forder1(0) = order1(ro - 1);
+	forder1(arma::span(1, ro - 1)) = order1(arma::span(0, ro - 2));
+
+	arma::uvec forder = order2;
+	forder(r2 - 1) = order1(ro - 2);
+	arma::uvec inds1 = order1(arma::span(0, ro - 3));
+	
+	arma::uvec size1 = o.size();
+	size1 = size1(arma::sort_index(inds1));
+	inds1 = arma::sort(inds1);
+
+	
+	arma::uword udelta = 0;
+	arma::uvec size2 = T2.size();
+	for (arma::uword iele = 0; iele < ro - 2; iele++){
+		arma::uword iele0 = inds1(iele) - r2 - 1 + udelta;
+		forder.insert_rows(iele0, 1, true);
+		forder(iele0) = inds1(iele);
+
+		size2(iele0 - udelta) *= size1(iele);
+		udelta++;
+	}
+	Tensor t2o;
+	t2o.tensor_product(forder.memptr(), 1, T2, order2.memptr(), order2.memptr(), o, order1.memptr(), forder1.memptr());
+	t2o.reshape(size2);
+
+	double_tensor(T1, t2o);
+	return *this;
+}
+
+
+
+
+
+
+TNSCat::Tensor& TNSCat::Tensor::bi_par(){
+	arma::uvec size0(2 * ndims);
+	arma::uvec size1 = arma::sqrt(size_);
+	arma::uvec order0(2 * ndims);
+	for (arma::uword idim = 0; idim < ndims; idim++){
+		order0(idim) = 2 * idim;
+		order0(idim + ndims) = 2 * idim + 1;
+		size0(idim * 2) = size1(idim);
+		size0(idim * 2 + 1) = size1(idim);
+	}
+	reshape(size0);
+	permute(order0.memptr());
+	return *this;
+}
+
+
 double TNSCat::dot(const Tensor& T1, const Tensor& T2){
 	return arma::dot(T1.ele_, T2.ele_);
 }
 
+
+double TNSCat::delta(const Tensor& T1, const Tensor& T2){
+	arma::mat mat1 = T1.c_data();
+	arma::mat mat2 = T2.c_data();
+	mat1.reshape(T1.n_elem, 1);
+	mat2.reshape(T2.n_elem, 1);
+	double d = arma::accu(arma::abs(mat1 - mat2));
+	return d;
+}
 
 
 
