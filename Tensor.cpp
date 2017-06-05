@@ -297,6 +297,20 @@ TNSCat::Tensor& TNSCat::Tensor::operator=(const Tensor& T){
 
 
 
+TNSCat::Tensor& TNSCat::Tensor::operator+=(const Tensor& T){
+#ifdef DEBUG_CODE
+	if (arma::any(size_ != T.size_) || arma::any(accu_size_ != T.size_)){
+		std::cout << __FUNCTION__ << std::endl;
+		std::cout << "Error: size doesn't match!" << std::endl;
+		exit(1);
+	}
+#endif
+	ele_ += T.ele_;
+	return *this;
+}
+
+
+
 
 
 
@@ -616,6 +630,7 @@ TNSCat::Tensor& TNSCat::Tensor::double_tensor(const Tensor& T1, const Tensor& o,
 	arma::uword forder1[2] = { T2.ndims, T2.ndims + 1 };
 	t22.tensor_product(1, T2, order2.memptr(), forder2.memptr(), o12, order1, forder1);
 	double_tensor(T1, t22);
+	return *this;
 }
 
 
@@ -666,9 +681,10 @@ TNSCat::Tensor& TNSCat::Tensor::tri_tensor(const Tensor& T1, const Tensor& o, co
 
 
 
-TNSCat::Tensor& TNSCat::Tensor::bi_par(){
+TNSCat::Tensor& TNSCat::Tensor::bi_par(bool& if_mpo, const arma::uvec& sizei){
+	if_mpo = false;
 	arma::uvec size0(2 * ndims);
-	arma::uvec size1 = arma::sqrt(size_);
+	arma::uvec size1 = arma::sqrt(sizei);
 	arma::uvec order0(2 * ndims);
 	for (arma::uword idim = 0; idim < ndims; idim++){
 		order0(idim) = 2 * idim;
@@ -676,6 +692,41 @@ TNSCat::Tensor& TNSCat::Tensor::bi_par(){
 		size0(idim * 2) = size1(idim);
 		size0(idim * 2 + 1) = size1(idim);
 	}
+	
+	if (arma::any(size_ != sizei)){
+		if_mpo = true;
+		arma::uvec d_size = arma::find(size_ != sizei);
+		arma::uword n_d = d_size.n_elem;
+		arma::uword new_ndim = 2 * ndims + n_d;
+		arma::uvec size00(new_ndim),
+			forder00(new_ndim),
+			order00 = arma::linspace<arma::uvec>(1, new_ndim, new_ndim);
+		
+		arma::uword d0 = 0;
+		for (arma::uword idim = 0; idim < ndims; idim++){
+			if (size_(idim) == sizei(idim)){
+				size00(idim * 2 + d0) = size1(idim);
+				size00(idim * 2 + 1 + d0) = size1(idim);
+
+				forder00(idim) = 2 * idim + 1 + d0;
+				forder00(idim + ndims) = 2 * idim + 2 + d0;
+			}
+			else{
+				size00(idim * 2 + d0) = size1(idim);
+				size00(idim * 2 + 1 + d0) = size_(idim) / sizei(idim);
+				size00(idim * 2 + 2 + d0) = size1(idim);
+
+				forder00(idim) = 2 * idim + 1 + d0;
+				forder00(new_ndim - n_d - 1 + d0) = 2 * idim + 2 + d0;
+				forder00(idim + ndims) = 2 * idim + 3 + d0;
+				d0++;
+			}
+		}
+		reshape(size00);
+		tensor_permute(order00.memptr(), forder00.memptr());
+		return *this;
+	}
+	
 	reshape(size0);
 	permute(order0.memptr());
 	return *this;

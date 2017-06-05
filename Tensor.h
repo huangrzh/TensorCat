@@ -61,7 +61,7 @@ namespace TNSCat{
 
 		void sum_ind(arma::uword i_ind);
 
-
+		Tensor& operator+=(const Tensor&);
 		Tensor& operator=(const Tensor&);
 		void reshape(const arma::uvec& new_size);
 		void reshape(const std::vector<arma::uword>& new_size);
@@ -99,7 +99,7 @@ namespace TNSCat{
 
 		Tensor& tri_tensor(const Tensor& T1, const Tensor& o, const std::vector<arma::uword>& oinds, const Tensor& T2);
 
-		Tensor& bi_par();
+		Tensor& bi_par(bool& if_mpo, const arma::uvec& size0);
 
 
 
